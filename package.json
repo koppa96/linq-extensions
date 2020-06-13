@@ -1,0 +1,14 @@
+{
+  "name": "linq-extensions",
+  "version": "1.0.0",
+  "description": "Linq-like extension methods for JavaScript and TypeScript builtin collections",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^3.9.5"
+  }
+}
