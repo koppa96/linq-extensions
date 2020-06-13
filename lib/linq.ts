@@ -5,6 +5,8 @@ import { DistinctIterable } from './iterables/distinct-iterable';
 import { RangeIterable } from './iterables/range-iterable';
 import { EmptyIterable } from './iterables/empty-iterable';
 import { SelectIterable } from './iterables/select-iterable';
+import { Grouping } from './grouping/grouping';
+import { GroupingIterable } from './iterables/grouping-iterable';
 
 declare module './iterable' {
   export interface Iterable<T> {
@@ -22,7 +24,7 @@ declare module './iterable' {
     elementAt(index: number): T;
     first(predicate?: (element: T) => boolean): T;
     firstOrNull(predicate?: (element: T) => boolean): T | null;
-    // groupBy<P>(selector: (element: T) => P): Iterable<Grouping<P, T>>;
+    groupBy<K>(keySelector: (element: T) => K): Iterable<Grouping<K, T>>;
     // innerJoin<O>(iterable: Iterable<O>): Join<T, O>;
     intersect(equalityCheck?: (left: T, right: T) => boolean): Iterable<T>;
     last(predicate?: (element: T) => boolean): T;
@@ -158,6 +160,29 @@ Iterable.prototype.elementAt = function<T>(this: Iterable<T>, index: number): T 
     i++;
   }
   throw new Error('Index out of range.');
+}
+
+Iterable.prototype.first = function<T>(this: Iterable<T>, predicate?: (element: T) => boolean): T {
+  const firstOrNull = this.firstOrNull(predicate);
+  if (firstOrNull !== null) {
+    return firstOrNull;
+  } else {
+    throw new Error('The sequence contains no matching element.');
+  }
+}
+
+Iterable.prototype.firstOrNull = function<T>(this: Iterable<T>, predicate?: (element: T) => boolean): T | null {
+  predicate = predicate ? predicate : element => true;
+  for (const element of this) {
+    if (predicate(element)) {
+      return element;
+    }
+  }
+  return null;
+}
+
+Iterable.prototype.groupBy = function<T, K>(this: Iterable<T>, keySelector: (element: T) => K): Iterable<Grouping<K, T>> {
+  return new GroupingIterable(this, keySelector);
 }
 
 Iterable.prototype.select = function<T, R>(this: Iterable<T>, selector: (element: T) => R): Iterable<R> {
