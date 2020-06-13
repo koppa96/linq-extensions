@@ -189,6 +189,22 @@ Iterable.prototype.select = function<T, R>(this: Iterable<T>, selector: (element
   return new SelectIterable(this, selector);
 }
 
+Iterable.prototype.toArray = function<T>(this: Iterable<T>): T[] {
+  return Array.from(this);
+}
+
+Iterable.prototype.toMap = function<T, K, V>(
+  this: Iterable<T>,
+  keySelector: (element: T) => K,
+  valueSelector: (element: T) => V
+): Map<K, V> {
+  return new Map<K, V>(this.select(x => [keySelector(x), valueSelector(x)]));
+}
+
+Iterable.prototype.toSet = function<T>(this: Iterable<T>): Set<T> {
+  return new Set<T>(this);
+}
+
 Iterable.prototype.where = function<T>(this: Iterable<T>, predicate: (element: T) => boolean): Iterable<T> {
   return new WhereIterable(this, predicate);
 }

@@ -28,6 +28,4 @@ const people: Person[] = [
   }
 ];
 
-for (const group of people.groupBy(x => x.age)) {
-  console.log(`${group.key}: ${group.count()}`);
-}
+console.log(people.select(x => x.age).toSet());
