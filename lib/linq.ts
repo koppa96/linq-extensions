@@ -289,9 +289,31 @@ Iterable.prototype.innerJoin = function <T, O, R>(
 Iterable.prototype.intersect = function <T>(
   this: Iterable<T>,
   otherIterable: Iterable<T>,
-  equalityCheck?: EqualityCheck<T>
+  equalityCheck: EqualityCheck<T> = (left, right) => left === right
 ): Iterable<T> {
-  throw new Error('Method not implemented.');
+  return this.innerJoin(
+    otherIterable,
+    equalityCheck,
+    (left, right) => left
+  );
+}
+
+Iterable.prototype.last = function <T>(this: Iterable<T>, predicate?: Predicate<T>): T {
+  const lastOrNull = this.lastOrNull(predicate);
+  if (lastOrNull === null) {
+    throw new Error('The sequence contains no matching element.');
+  }
+  return lastOrNull;
+}
+
+Iterable.prototype.lastOrNull = function <T>(this: Iterable<T>, predicate: Predicate<T> = element => true): T | null {
+  let last = null;
+  for (const element of this) {
+    if (predicate(element)) {
+      last = element;
+    }
+  }
+  return last;
 }
 
 Iterable.prototype.select = function <T, R>(this: Iterable<T>, selector: Selector<T, R>): Iterable<R> {
