@@ -1,10 +1,11 @@
 import { Iterable } from '../iterable';
+import { Selector, EqualityCheck } from '../types';
 
 export class DistinctIterable<T, P> extends Iterable<T> {
   constructor(
     private originalIterable: Iterable<T>,
-    private selector: (element: T) => P,
-    private equalityCheck: (left: P, right: P) => boolean
+    private selector: Selector<T, P>,
+    private equalityCheck: EqualityCheck<P>
   ) {
     super();
   }

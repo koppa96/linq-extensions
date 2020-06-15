@@ -1,9 +1,10 @@
 import { Iterable } from '../iterable';
+import { Predicate } from '../types';
 
 export class WhereIterable<T> extends Iterable<T> {
   constructor(
     private originalIterable: Iterable<T>,
-    private predicate: (element: T) => boolean
+    private predicate: Predicate<T>
   ) {
     super();
   }

@@ -1,10 +1,11 @@
 import { Iterable } from '../iterable';
 import { Grouping } from '../grouping/grouping';
+import { Selector } from '../types';
 
 export class GroupingIterable<K, V> extends Iterable<Grouping<K, V>> {
   constructor(
     private originalIterable: Iterable<V>,
-    private keySelector: (element: V) => K
+    private keySelector: Selector<V, K>
   ) {
     super();
   }
