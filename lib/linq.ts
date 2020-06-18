@@ -8,7 +8,15 @@ import { SelectIterable } from './iterables/select-iterable';
 import { Grouping } from './grouping/grouping';
 import { GroupingIterable } from './iterables/grouping-iterable';
 import { InnerJoinIterable } from './iterables/join/inner-join-iterable';
-import { BiSelector, Predicate, Selector, EqualityCheck, BiPredicate } from './types';
+import { BiSelector, Predicate, Selector, EqualityCheck, BiPredicate, Comparator, defaultComparator, defaultEqualityCheck } from './types';
+import { LeftJoinIterable } from './iterables/join/left-join-iterable';
+import { OrderedIterable } from './iterables/ordered-iterable';
+import { Ordering } from './iterables/ordering/ordering';
+import { OuterJoinIterable } from './iterables/join/outer-join-iterable';
+import { ReverseIterable } from './iterables/reverse-iterable';
+import { SelectManyIterable } from './iterables/select-many-iterable';
+import { SkipWhileIterable } from './iterables/skip-while-iterable';
+import { TakeWhileIterable } from './iterables/take-while-iterable';
 
 declare module './iterable' {
   /**
@@ -109,12 +117,14 @@ declare module './iterable' {
       condition: BiPredicate<T, O>,
       selector: BiSelector<T, O | null, R>
     ): Iterable<R>;
-    max(): T;
-    maxBy<P>(selector: Selector<T, P>): T;
-    maxOf<P>(selector: Selector<T, P>): P;
-    min(): T;
-    minBy<P>(selector: Selector<T, P>): T;
-    minOf<P>(selector: Selector<T, P>): P;
+    max(comparator?: Comparator<T>): T;
+    maxBy<P>(selector: Selector<T, P>, comparator?: Comparator<P>): T;
+    maxOf<P>(selector: Selector<T, P>, comparator?: Comparator<P>): P;
+    min(comparator?: Comparator<T>): T;
+    minBy<P>(selector: Selector<T, P>, comparator?: Comparator<P>): T;
+    minOf<P>(selector: Selector<T, P>, comparator?: Comparator<P>): P;
+    orderBy<P>(selector: Selector<T, P>, comparator?: Comparator<P>): OrderedIterable<T>;
+    orderByDescending<P>(selector: Selector<T, P>, comparator?: Comparator<P>): OrderedIterable<T>;
     outerJoin<O, R>(
       otherIterable: Iterable<O>,
       condition: BiPredicate<T, O>,
@@ -130,17 +140,17 @@ declare module './iterable' {
     ): Iterable<R>;
     select<R>(selector: Selector<T, R>): Iterable<R>;
     selectMany<C, R = C>(collectionSelector: Selector<T, Iterable<C>>, selector?: BiSelector<T, C, R>): Iterable<R>;
-    sequenceEqual(sequence: Iterable<T>): boolean;
+    sequenceEqual(sequence: Iterable<T>, equalityCheck?: EqualityCheck<T>): boolean;
     single(predicate?: Predicate<T>): T;
     singleOrNull(predicate?: Predicate<T>): T | null;
     skip(count: number): Iterable<T>;
     skipLast(count: number): Iterable<T>;
-    skipWhile(predicate: Predicate<T>): Iterable<T>;
+    skipWhile(predicate: BiPredicate<T, number>): Iterable<T>;
     sum(): number;
     sumOf(selector: Selector<T, number>): number;
     take(count: number): Iterable<T>;
     takeLast(count: number): Iterable<T>;
-    takeWhile(predicate: Predicate<T>): Iterable<T>;
+    takeWhile(predicate: BiPredicate<T, number>): Iterable<T>;
     toArray(): T[];
     toMap<K, V>(keySelector: Selector<T, K>, valueSelector: Selector<T, V>): Map<K, V>;
     toSet(): Set<T>;
@@ -229,7 +239,7 @@ Iterable.prototype.distinct = function <T>(this: Iterable<T>, equalityCheck?: Eq
 Iterable.prototype.distinctBy = function <T, P>(
   this: Iterable<T>,
   selector: Selector<T, P>,
-  equalityCheck: EqualityCheck<P> = (left, right) => left === right
+  equalityCheck: EqualityCheck<P> = defaultEqualityCheck
 ): Iterable<T> {
   return new DistinctIterable(
     this,
@@ -289,7 +299,7 @@ Iterable.prototype.innerJoin = function <T, O, R>(
 Iterable.prototype.intersect = function <T>(
   this: Iterable<T>,
   otherIterable: Iterable<T>,
-  equalityCheck: EqualityCheck<T> = (left, right) => left === right
+  equalityCheck: EqualityCheck<T> = defaultEqualityCheck
 ): Iterable<T> {
   return this.innerJoin(
     otherIterable,
@@ -316,8 +326,190 @@ Iterable.prototype.lastOrNull = function <T>(this: Iterable<T>, predicate: Predi
   return last;
 }
 
+Iterable.prototype.leftJoin = function <T, O, R>(
+  this: Iterable<T>,
+  otherIterable: Iterable<O>,
+  condition: BiPredicate<T, O>,
+  selector: BiSelector<T, O | null, R>
+) {
+  return new LeftJoinIterable(this, otherIterable, condition, selector);
+}
+
+Iterable.prototype.max = function <T>(this: Iterable<T>, comparator: Comparator<T> = defaultComparator): T {
+  let max: T | null = null;
+  for (const element of this) {
+    if (max === null || comparator(max, element) < 0) {
+      max = element;
+    }
+  }
+  
+  if (max === null) {
+    throw new Error('The sequence contains no elements.');
+  }
+  return max;
+}
+
+Iterable.prototype.maxBy = function <T, P>(this: Iterable<T>, selector: Selector<T, P>, comparator: Comparator<P> = defaultComparator): T {
+  return this.select(x => ({ original: x, selected: selector(x) }))
+    .max((left, right) => comparator(left.selected, right.selected)).original;
+}
+
+Iterable.prototype.maxOf = function <T, P>(this: Iterable<T>, selector: Selector<T, P>, comparator?: Comparator<P>): P {
+  return this.select(selector).max(comparator);
+}
+
+Iterable.prototype.min = function <T>(this: Iterable<T>, comparator: Comparator<T> = defaultComparator): T {
+  return this.max((left, right) => comparator(right, left));
+}
+
+Iterable.prototype.minBy = function <T, P>(this: Iterable<T>, selector: Selector<T, P>, comparator: Comparator<P> = defaultComparator): T {
+  return this.maxBy(selector, (left, right) => comparator(right, left))
+}
+
+Iterable.prototype.maxOf = function <T, P>(this: Iterable<T>, selector: Selector<T, P>, comparator: Comparator<P> = defaultComparator): P {
+  return this.maxOf(selector, (left, right) => comparator(right, left));
+}
+
+Iterable.prototype.orderBy = function <T, P>(this: Iterable<T>, selector: Selector<T, P>, comparator: Comparator<P> = defaultComparator): OrderedIterable<T> {
+  return new OrderedIterable(this, new Ordering(selector, comparator, 'asc'));
+}
+
+Iterable.prototype.orderByDescending = function <T, P>(this: Iterable<T>, selector: Selector<T, P>, comparator: Comparator<P> = defaultComparator): OrderedIterable<T> {
+  return new OrderedIterable(this, new Ordering(selector, comparator, 'desc'));
+}
+
+Iterable.prototype.outerJoin = function <T, O, R>(
+  this: Iterable<T>,
+  otherIterable: Iterable<O>,
+  condition: BiPredicate<T, O>,
+  selector: BiSelector<T | null, O | null, R>
+): Iterable<R> {
+  return new OuterJoinIterable(this, otherIterable, condition, selector);
+}
+
+Iterable.prototype.prepend = function <T>(this: Iterable<T>, element: T): Iterable<T> {
+  return this.prependMany([element]);
+}
+
+Iterable.prototype.prependMany = function <T>(this: Iterable<T>, otherIterable: Iterable<T>): Iterable<T> {
+  return otherIterable.appendMany(this);
+}
+
+Iterable.prototype.reverse = function <T>(this: Iterable<T>): Iterable<T> {
+  return new ReverseIterable(this);
+}
+
+Iterable.prototype.rightJoin = function <T, O, R>(
+  this: Iterable<T>,
+  otherIterable: Iterable<O>,
+  condition: BiPredicate<T, O>,
+  selector: BiSelector<T | null, O, R>
+): Iterable<R> {
+  return otherIterable.leftJoin(this, (left, right) => condition(right, left), (left, right) => selector(right, left));
+}
+
 Iterable.prototype.select = function <T, R>(this: Iterable<T>, selector: Selector<T, R>): Iterable<R> {
   return new SelectIterable(this, selector);
+}
+
+Iterable.prototype.selectMany = function <T, C, R = C>(
+  collectionSelector: Selector<T, Iterable<C>>,
+  selector: BiSelector<T, C, R> = (left, right) => right as any
+): Iterable<R> {
+  return new SelectManyIterable(this, collectionSelector, selector);
+}
+
+Iterable.prototype.sequenceEqual = function <T>(
+  this: Iterable<T>,
+  otherIterable: Iterable<T>,
+  equalityCheck: EqualityCheck<T> = defaultEqualityCheck
+): boolean {
+  const iterator1 = this[Symbol.iterator]();
+  const iterator2 = otherIterable[Symbol.iterator]();
+
+  while (true) {
+    const result1 = iterator1.next();
+    const result2 = iterator2.next();
+
+    if (result1.done) {
+      if (result2.done) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      if (result2.done) {
+        return false;
+      } else {
+        if (!equalityCheck(result1.value, result2.value)) {
+          return false;
+        }
+      }
+    }
+  }
+}
+
+Iterable.prototype.single = function <T>(this: Iterable<T>, predicate: Predicate<T>): T {
+  const singleOrNull = this.singleOrNull();
+  if (singleOrNull === null) {
+    throw new Error('The sequence contains no matching element.');
+  }
+  return singleOrNull;
+}
+
+Iterable.prototype.skip = function <T>(this: Iterable<T>, count: number): Iterable<T> {
+  return this.skipWhile((element, index) => index < count);
+}
+
+Iterable.prototype.skipLast = function <T>(this: Iterable<T>, count: number): Iterable<T> {
+  const iterableCount = this.count();
+  return this.takeWhile((element, index) => index < iterableCount - count);
+}
+
+Iterable.prototype.skipWhile = function <T>(this: Iterable<T>, predicate: BiPredicate<T, number>): Iterable<T> {
+  return new SkipWhileIterable(this, predicate);
+}
+
+Iterable.prototype.sum = function <T>(this: Iterable<T>): number {
+  let sum = 0;
+  for (const element of this) {
+    if (typeof element !== 'number') {
+      throw new Error('Sum can only be calculated on sequences that only contain numbers.');
+    }
+    sum += element;
+  }
+  return sum;
+}
+
+Iterable.prototype.sumOf = function <T>(this: Iterable<T>, selector: Selector<T, number>): number {
+  return this.select(selector).sum();
+}
+
+Iterable.prototype.take = function <T>(this: Iterable<T>, count: number): Iterable<T> {
+  return this.takeWhile((element, index) => index < count);
+}
+
+Iterable.prototype.takeLast = function <T>(this: Iterable<T>, count: number): Iterable<T> {
+  const iterableCount = this.count();
+  return this.skipWhile((element, index) => index < iterableCount - count);
+}
+
+Iterable.prototype.takeWhile = function <T>(this: Iterable<T>, predicate: BiPredicate<T, number>): Iterable<T> {
+  return new TakeWhileIterable(this, predicate);
+}
+
+Iterable.prototype.singleOrNull = function <T>(this: Iterable<T>, predicate: Predicate<T>): T | null {
+  let result: T | null = null;
+  for (const element of this) {
+    if (predicate(element)) {
+      if (result) {
+        throw new Error('The sequence contains more than one matching element.');
+      } else {
+        result = element;
+      }
+    }
+  }
+  return result;
 }
 
 Iterable.prototype.toArray = function <T>(this: Iterable<T>): T[] {
@@ -334,6 +526,14 @@ Iterable.prototype.toMap = function <T, K, V>(
 
 Iterable.prototype.toSet = function <T>(this: Iterable<T>): Set<T> {
   return new Set<T>(this);
+}
+
+Iterable.prototype.union = function <T>(
+  this: Iterable<T>,
+  otherIterable: Iterable<T>,
+  equalityCheck?: EqualityCheck<T>
+): Iterable<T> {
+  return this.appendMany(otherIterable).distinct(equalityCheck);
 }
 
 Iterable.prototype.where = function <T>(this: Iterable<T>, predicate: Predicate<T>): Iterable<T> {
