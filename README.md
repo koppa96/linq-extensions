@@ -18,3 +18,6 @@ for (const element of people.where(x => x.age < 30).orderByDescending(x => x.age
 }
 ```
 This line is very important since this runs the code that adds the new methods to the prototype of the builtin collections. You can use `require()` in node js when writing JavaScript code.
+
+## Extension method documentations
+For the documentations please visit the wiki page of the repository.
