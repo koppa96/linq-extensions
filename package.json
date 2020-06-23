@@ -1,6 +1,6 @@
 {
   "name": "linq-extensions",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Linq-like extension methods for JavaScript and TypeScript builtin collections",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
