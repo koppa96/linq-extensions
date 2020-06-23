@@ -10,7 +10,7 @@ export class Ordering<T, P> {
     direction: OrderingDirectiron
   ) {
     if (direction === 'desc') {
-      this.comparator = (left, right) => this.comparator(right, left);
+      this.comparator = (left, right) => comparator(right, left);
     }
   }
 

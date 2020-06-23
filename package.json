@@ -2,13 +2,23 @@
   "name": "linq-extensions",
   "version": "1.0.0",
   "description": "Linq-like extension methods for JavaScript and TypeScript builtin collections",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
-  "author": "",
+  "author": "koppa96",
+  "keywords": [
+    "linq"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koppa96/linq-extensions"
+  },
   "license": "ISC",
-  "dependencies": {
+  "files": ["dist/**/*"],
+  "devDependencies": {
     "typescript": "^3.9.5"
   }
 }
