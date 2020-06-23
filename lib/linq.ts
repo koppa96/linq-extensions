@@ -100,61 +100,322 @@ declare module './iterable' {
      * @returns A sequence containing the elements that are distinct by the mapping
      */
     distinctBy<P>(selector: Selector<T, P>, equalityCheck?: EqualityCheck<P>): Iterable<T>;
+
+    /**
+     * Get the element of the sequence at the given position.
+     * @param index The index of the element
+     * @throws An error if the index is out of the bounds of the sequence
+     * @returns The element at the given index
+     */
     elementAt(index: number): T;
+
+    /**
+     * Gets the first element of the sequence that matches the given predicate, or the first element if no predicate is given.
+     * @param predicate The predicate to be checked or undefined
+     * @throws An error if the sequence is empty of no elements match the predicate
+     * @returns The first element that matches the predicate or the first element
+     */
     first(predicate?: Predicate<T>): T;
+
+    /**
+     * Gets the first element of the sequence that matches the given predicate, or the first element if no predicate is given, or null if the sequence is empty or no elements match the predicate.
+     * @param predicate The predicate to be checked or undefined
+     * @returns The first element the matches the predicate, the first element, or null
+     */
     firstOrNull(predicate?: Predicate<T>): T | null;
-    groupBy<K>(keySelector: Selector<T, K>): Iterable<Grouping<K, T>>;
+
+    /**
+     * Groups the elements of the sequence by the selected key.
+     * @param keySelector The selector that selects the key to group by
+     * @param equalityCheck A function that checks whether 2 keys are equal
+     * @returns A sequence containing the groupings
+     */
+    groupBy<K>(keySelector: Selector<T, K>, equalityCheck?: EqualityCheck<K>): Iterable<Grouping<K, T>>;
+
+    /**
+     * Joins the elements of 2 sequences that match the given condition.
+     * @param otherIterable The other sequence
+     * @param condition A condition that defines when to perform a join on 2 elements
+     * @param selector A function that maps the elements into the result element
+     * @returns A sequence containing the joined elements
+     */
     innerJoin<O, R>(
       otherIterable: Iterable<O>,
       condition: BiPredicate<T, O>,
       selector: BiSelector<T, O, R>
     ): Iterable<R>;
+
+    /**
+     * Gets the intersection of 2 sequences.
+     * @param otherIterable The other sequence
+     * @param equalityCheck A function that determines whether 2 elements are considered equal
+     * @returns A sequence containing the elements that are in both of the sequences
+     */
     intersect(otherIterable: Iterable<T>, equalityCheck?: EqualityCheck<T>): Iterable<T>;
+
+    /**
+     * Gets the last element in the sequence that matches the predicate, or the last element if no predicate is specified.
+     * @param predicate The predicate to be tested
+     * @throws An error if there are no elements in the sequence or no elements match the predicate
+     * @returns The last element that matches the predicate or the last element
+     */
     last(predicate?: Predicate<T>): T;
+
+    /**
+     * Gets the last element in the sequence that matches the predicate, or the last element if no predicate is specified, or null.
+     * @param predicate The predicate to be tested
+     * @returns The last element that matches the predicate, or the last element, or null
+     */
     lastOrNull(predicate?: Predicate<T>): T | null;
+
+    /**
+     * Performs a left join operation with the given join condition. If an element in the current sequence can not be joined to any elements of the other sequence, it is joined with null.
+     * @param otherIterable The other sequence
+     * @param condition The condition that defines whether 2 elements should be joined
+     * @param selector A function that maps the elements into the result element
+     * @returns A sequence containing the joined elements
+     */
     leftJoin<O, R>(
       otherIterable: Iterable<O>,
       condition: BiPredicate<T, O>,
       selector: BiSelector<T, O | null, R>
     ): Iterable<R>;
+    
+    /**
+     * Returns the maximum of the elements in the sequence.
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns The greatest element
+     */
     max(comparator?: Comparator<T>): T;
+
+    /**
+     * Returns the element of the sequence which has the maximum of the value selected by the selector.
+     * @param selector Selects a value for each element that will be checked
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns The element with the greatest selected value
+     */
     maxBy<P>(selector: Selector<T, P>, comparator?: Comparator<P>): T;
+
+    /**
+     * Returns the greatest value selected by the selector for each element.
+     * @param selector Selects a value for each element that will be checked
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns The greatest selected value
+     */
     maxOf<P>(selector: Selector<T, P>, comparator?: Comparator<P>): P;
+
+    /**
+     * Returns the minimum of the elements in the sequence.
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns The smallest element
+     */
     min(comparator?: Comparator<T>): T;
+
+    /**
+     * Returns the element of the sequence which has the minimum of the value selected by the selector.
+     * @param selector Selects a value for each element that will be checked
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns The element with the smallest selected value
+     */
     minBy<P>(selector: Selector<T, P>, comparator?: Comparator<P>): T;
+
+    /**
+     * Returns the smallest value selected by the selector for each element.
+     * @param selector Selects a value for each element that will be checked
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns The smallest selected value
+     */
     minOf<P>(selector: Selector<T, P>, comparator?: Comparator<P>): P;
+
+    /**
+     * Orders the elements of the sequence by a selected value ascending.
+     * @param selector The selector that selects the value to order the elements by
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns A sequence ordered by the selected values
+     */
     orderBy<P>(selector: Selector<T, P>, comparator?: Comparator<P>): OrderedIterable<T>;
+
+    /**
+     * Orders the elements of the sequence by a selected value descending.
+     * @param selector The selector that selects the value to order the elements by
+     * @param comparator A function that compares two elements and decides their relation (<, =, >)
+     * @returns A sequence ordered by the selected values
+     */
     orderByDescending<P>(selector: Selector<T, P>, comparator?: Comparator<P>): OrderedIterable<T>;
+
+    /**
+     * Performs a full outer join on 2 sequences with the given condition.
+     * @param otherIterable The other sequence
+     * @param condition The condition that defines whether 2 elements should be joined
+     * @param selector A function that maps the elements into the result element
+     * @returns A sequence containing the joined elements
+     */
     outerJoin<O, R>(
       otherIterable: Iterable<O>,
       condition: BiPredicate<T, O>,
       selector: BiSelector<T | null, O | null, R>
     ): Iterable<R>
+
+    /**
+     * Creates a sequence that starts by the given element and contains the elements of the current sequence.
+     * @param element The element to be added to the front
+     * @returns A sequence containing the element and the elements of this sequence
+     */
     prepend(element: T): Iterable<T>;
+
+    /**
+     * Creates a sequence that starts with the elements of the given sequence followed by the elements of the current sequence.
+     * @param iterable The elements to be added to the front
+     * @returns A sequence containing the elements of the other sequence and the current sequence
+     */
     prependMany(iterable: Iterable<T>): Iterable<T>;
+
+    /**
+     * Returns a sequence that contains the elements of the current sequence in reverse.
+     * @returns A sequence containing the elements of this sequence in reverse
+     */
     reverse(): Iterable<T>;
+
+    /**
+     * Performs a right join operation with the given join condition. If an element in the other sequence can not be joined to any elements of the current sequence, it is joined with null.
+     * @param otherIterable The other sequence
+     * @param condition The condition that defines whether 2 elements should be joined
+     * @param selector A function that maps the elements into the result element
+     * @returns A sequence containing the joined elements
+     */
     rightJoin<O, R>(
       otherIterable: Iterable<O>,
       condition: BiPredicate<T, O>,
       selector: BiSelector<T | null, O, R>
     ): Iterable<R>;
+
+    /**
+     * Maps the elements of the current sequence into a new form
+     * @param selector A function that performs the mapping for each element
+     * @returns A sequence that contains the mapped elements
+     */
     select<R>(selector: Selector<T, R>): Iterable<R>;
+
+    /**
+     * Projects the elements of the sequence into subcollections, then flattens the result.
+     * @param collectionSelector Selects a subcollection for each element
+     * @param selector Optionally maps each element with a subcollection element
+     * @returns A sequence containing the flattened elements
+     */
     selectMany<C, R = C>(collectionSelector: Selector<T, Iterable<C>>, selector?: BiSelector<T, C, R>): Iterable<R>;
+
+    /**
+     * Checks whether 2 sequences contain only the same elements.
+     * @param sequence The other sequence
+     * @param equalityCheck A function that determines whether 2 elements are considered equal
+     * @returns Whether 2 sequences contain only the same elements
+     */
     sequenceEqual(sequence: Iterable<T>, equalityCheck?: EqualityCheck<T>): boolean;
+
+    /**
+     * Returns a single element that matches the given predicate. If no predicate is given it returns the single element in the sequence.
+     * @param predicate The predicate to be checked
+     * @throws An error if the sequence is empty or has no element that matches the predicate, or more than one elements match the predicate
+     * @returns The single element that matches the predicate, or the single element in the sequence
+     */
     single(predicate?: Predicate<T>): T;
+
+    /**
+     * Returns a single element that matches the given predicate. If no predicate is given it returns the single element in the sequence. If no elements match it returns null.
+     * @param predicate The predicate to be checked
+     * @returns The single element that matches the predicate, or the single element in the sequence or null
+     */
     singleOrNull(predicate?: Predicate<T>): T | null;
+
+    /**
+     * Skips the given amount of elements from the front of the sequence.
+     * @param count The number of elements to be skipped
+     * @returns A sequence without the first count elements
+     */
     skip(count: number): Iterable<T>;
+
+    /**
+     * Skips the given amount of elements from the end of the sequence.
+     * @param count The number of elements to be skipped
+     * @returns A sequence without the last count elements
+     */
     skipLast(count: number): Iterable<T>;
+
+    /**
+     * Skips the elements of the sequence while the given predicate is satisfied.
+     * @param predicate The predicate to be checked
+     * @returns A sequence without the skipped elements
+     */
     skipWhile(predicate: BiPredicate<T, number>): Iterable<T>;
+
+    /**
+     * Gets the sum of the elements of the sequence if the sequence contains a number.
+     * @throws An error if not all the elements of the sequence are numbers
+     * @returns The sum of the elements of the sequence
+     */
     sum(): number;
+
+    /**
+     * Gets the sum of the values mapped by the selector.
+     * @param selector The selector that maps the elements into the value
+     * @returns The sum of the mapped elements
+     */
     sumOf(selector: Selector<T, number>): number;
+
+    /**
+     * Takes the given amount of the elements from the front of the sequence.
+     * @param count The amount of elements to be taken
+     * @returns A sequence with the taken elements
+     */
     take(count: number): Iterable<T>;
+
+    /**
+     * Takes the given amount of the elements from the end of the sequence.
+     * @param count The amount of elements to be taken
+     * @returns A sequence with the taken elements
+     */
     takeLast(count: number): Iterable<T>;
+
+    /**
+     * Takes the elements of the sequence while the given predicate is true.
+     * @param predicate The predicate to be checked
+     * @returns A sequence with the taken elements
+     */
     takeWhile(predicate: BiPredicate<T, number>): Iterable<T>;
+
+    /**
+     * Enumerates the elements of the sequence and returns them in an array.
+     * @returns An array that contains the elements of the sequence
+     */
     toArray(): T[];
+
+    /**
+     * Enumerates the elements of the sequence and retuns the in a map with the given key and value selecting mechanism.
+     * @param keySelector A function that selects a key for each element
+     * @param valueSelector A function that selects a value for each element
+     * @returns The map containing the keys and values
+     */
     toMap<K, V>(keySelector: Selector<T, K>, valueSelector: Selector<T, V>): Map<K, V>;
+
+    /**
+     * Enumerates the elements of the sequence and returns them in a set.
+     * @returns A Set containing the elements of the sequence
+     */
     toSet(): Set<T>;
+
+    /**
+     * Gets the union of the elements of the 2 sequences.
+     * @param otherIterable The other sequence
+     * @param equalityCheck A function that determines whether 2 elements are considered equal
+     * @returns A sequence containing the distinct elements of both collections
+     */
     union(otherIterable: Iterable<T>, equalityCheck?: EqualityCheck<T>): Iterable<T>;
+
+    /**
+     * Returns a sequence filtered by the given predicate, keeping the elements that match the predicate.
+     * @param predicate The predicate to be checked
+     * @returns A sequence filtered by the given predicate
+     */
     where(predicate: Predicate<T>): Iterable<T>;
   }
 }
@@ -283,8 +544,12 @@ Iterable.prototype.firstOrNull = function <T>(
   return null;
 }
 
-Iterable.prototype.groupBy = function <T, K>(this: Iterable<T>, keySelector: Selector<T, K>): Iterable<Grouping<K, T>> {
-  return new GroupingIterable(this, keySelector);
+Iterable.prototype.groupBy = function <T, K>(
+  this: Iterable<T>,
+  keySelector: Selector<T, K>,
+  equalityCheck: EqualityCheck<K> = defaultEqualityCheck
+): Iterable<Grouping<K, T>> {
+  return new GroupingIterable(this, keySelector, equalityCheck);
 }
 
 Iterable.prototype.innerJoin = function <T, O, R>(

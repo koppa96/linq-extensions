@@ -17,7 +17,7 @@ const people: Person[] = [
   },
   {
     name: 'Test5',
-    age: 19,
+    age: 59,
     pets: [
       'körte',
       'citrom',
@@ -26,6 +26,4 @@ const people: Person[] = [
   }
 ];
 
-for (const pet of people.selectMany(x => x.pets)) {
-  console.log(pet);
-}
+console.log(people.maxBy(x => x.age));
