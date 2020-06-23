@@ -12,5 +12,9 @@ If you want to use the Iterables returned by the Linq operators in for-of loops 
 The usage of the library is very simple. Just import the library where you wish to use the extension methods.
 ```typescript
 import 'linq-extensions';
+
+for (const element of people.where(x => x.age < 30).orderByDescending(x => x.age).select(x => x.name)) {
+  // ..
+}
 ```
 This line is very important since this runs the code that adds the new methods to the prototype of the builtin collections. You can use `require()` in node js when writing JavaScript code.
