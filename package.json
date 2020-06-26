@@ -1,6 +1,6 @@
 {
   "name": "linq-extensions",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Linq-like extension methods for JavaScript and TypeScript builtin collections",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
   },
   "author": "koppa96",
   "keywords": [
-    "linq"
+    "linq", "query", "collections", "extension", "collection"
   ],
   "repository": {
     "type": "git",
