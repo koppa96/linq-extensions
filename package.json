@@ -1,6 +1,6 @@
 {
   "name": "linq-extensions",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Linq-like extension methods for JavaScript and TypeScript builtin collections",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +17,7 @@
     "url": "https://github.com/koppa96/linq-extensions"
   },
   "license": "ISC",
-  "files": ["dist/**/*"],
+  "files": ["dist/**/*", "README.md"],
   "devDependencies": {
     "typescript": "^3.9.5"
   }
