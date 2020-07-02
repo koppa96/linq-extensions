@@ -4,6 +4,8 @@ This library aims to extend the builtin collections of JavaScript with new lazil
 The library is written in TypeScript and has full type definitions avaliable.
 
 ## Setup
+The package is avaliable on npm. To install it you just have to type `npm install linq-extensions` into your console.
+
 The full setup requires an extra step for TypeScript users. Since this library heavily relies on Iterators and Generators it is recommended to add `ES2015` to the `lib` section of your `tsconfig.json`.
 
 If you want to use the Iterables returned by the Linq operators in for-of loops you need to set the `downlevelIteration` flag true in your `tsconfig.json`. This is optional, and not necessary if you do not use the Iterables in for-of loops.
