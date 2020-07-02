@@ -8,7 +8,7 @@ import { SelectIterable } from './iterables/select-iterable';
 import { Grouping } from './grouping/grouping';
 import { GroupingIterable } from './iterables/grouping-iterable';
 import { InnerJoinIterable } from './iterables/join/inner-join-iterable';
-import { BiSelector, Predicate, Selector, EqualityCheck, BiPredicate, Comparator, defaultComparator, defaultEqualityCheck } from './types';
+import { BiSelector, Predicate, Selector, EqualityCheck, BiPredicate, Comparator, defaultComparator, defaultEqualityCheck, Action } from './types';
 import { LeftJoinIterable } from './iterables/join/left-join-iterable';
 import { OrderedIterable } from './iterables/ordered-iterable';
 import { Ordering } from './iterables/ordering/ordering';
@@ -17,6 +17,8 @@ import { ReverseIterable } from './iterables/reverse-iterable';
 import { SelectManyIterable } from './iterables/select-many-iterable';
 import { SkipWhileIterable } from './iterables/skip-while-iterable';
 import { TakeWhileIterable } from './iterables/take-while-iterable';
+import { BatchIterable } from './iterables/batch-iterable';
+import { InsertIterable } from './iterables/insert-iterable';
 
 declare module './iterable' {
   /**
@@ -66,6 +68,22 @@ declare module './iterable' {
     asIterable(): Iterable<T>;
 
     /**
+     * Returns whether at least the given amount of elements match the given predicate. If no predicate is given, it returns whether there are the given amount of elements in the sequence.
+     * @param count The amount of elements the predicate should match at least
+     * @param predicate The predicate to be checked
+     * @returns True if at least the given count of elements match the predicate
+     */
+    atLeast(count: number, predicate?: Predicate<T>): boolean;
+
+    /**
+     * Returns whether at most the given amount of elements match the given predicate. If no predicate is given, it returns whether there are no more the given amount of elements in the sequence.
+     * @param count The amount of elements the predicate should match at most
+     * @param predicate The predicate to be checked
+     * @returns True if at most the given count of elements match the predicate
+     */
+    atMost(count: number, predicate?: Predicate<T>): boolean;
+
+    /**
      * Calculates the average of the elements of the sequence, if the elements of the sequence are numbers.
      * @returns The average of the elements
      * @throws An error if one of the elements of the sequence is not a number
@@ -78,6 +96,13 @@ declare module './iterable' {
      * @returns The average of the mapping results
      */
     averageOf(selector: Selector<T, number>): number;
+
+    /**
+     * Splits the sequence into batches of the given size, and returns the batches in a sequence.
+     * @param batchSize The maximal size of one batch
+     * @returns A sequence containing the batches
+     */
+    batch(batchSize: number): Iterable<Iterable<T>>;
 
     /**
      * Gets the count of the elements that satisfy the given predicate. If no predicate is given it returns the number of elements in the sequence.
@@ -108,6 +133,16 @@ declare module './iterable' {
      * @returns The element at the given index
      */
     elementAt(index: number): T;
+
+    endsWith(otherIterable: Iterable<T>, equalityCheck?: EqualityCheck<T>): boolean;
+
+    /**
+     * Determines whether exactly the given amount of elements match the predicate. If no predicate is given it determines whether there are exactly the given amount of elements in the sequence.
+     * @param count The amount of elements that should be checked
+     * @param predicate The predicate to be checked
+     * @returns True if exactly the given amount of elements match the predicate
+     */
+    exactly(count: number, predicate?: Predicate<T>): boolean;
 
     /**
      * Gets the first element of the sequence that matches the given predicate, or the first element if no predicate is given.
@@ -144,6 +179,24 @@ declare module './iterable' {
       condition: BiPredicate<T, O>,
       selector: BiSelector<T, O, R>
     ): Iterable<R>;
+
+    /**
+     * Inserts an element into the given index of the source sequence.
+     * @param index The index where the element should be inserted to
+     * @param element The element to be inserted
+     * @throws Error if the index is negative, or more than the amount of elements in the sequence
+     * @returns A sequence containing the inserted element
+     */
+    insert(index: number, element: T): Iterable<T>;
+
+    /**
+     * Inserts multiple elements into the given index of the source sequence.
+     * @param index The index where the element should be inserted to
+     * @param elements The elements to be inserted
+     * @throws Error if the index is negative, or more than the amount of elements in the sequence
+     * @returns A sequence containing the inserted elements
+     */
+    insertMany(index: number, elements: Iterable<T>): Iterable<T>;
 
     /**
      * Gets the intersection of 2 sequences.
@@ -204,6 +257,8 @@ declare module './iterable' {
      */
     maxOf<P>(selector: Selector<T, P>, comparator?: Comparator<P>): P;
 
+    merge(otherIterable: Iterable<T>, comparator?: Comparator<T>): Iterable<T>;
+
     /**
      * Returns the minimum of the elements in the sequence.
      * @param comparator A function that compares two elements and decides their relation (<, =, >)
@@ -254,7 +309,9 @@ declare module './iterable' {
       otherIterable: Iterable<O>,
       condition: BiPredicate<T, O>,
       selector: BiSelector<T | null, O | null, R>
-    ): Iterable<R>
+    ): Iterable<R>;
+
+    pipe(action: Action<T>): Iterable<T>;
 
     /**
      * Creates a sequence that starts by the given element and contains the elements of the current sequence.
@@ -269,6 +326,10 @@ declare module './iterable' {
      * @returns A sequence containing the elements of the other sequence and the current sequence
      */
     prependMany(iterable: Iterable<T>): Iterable<T>;
+
+    position(element: T, equalityCheck?: EqualityCheck<T>): number;
+
+    repeat(repeatCount: number): Iterable<T>;
 
     /**
      * Returns a sequence that contains the elements of the current sequence in reverse.
@@ -312,6 +373,8 @@ declare module './iterable' {
      */
     sequenceEqual(sequence: Iterable<T>, equalityCheck?: EqualityCheck<T>): boolean;
 
+    shuffle(): Iterable<T>;
+
     /**
      * Returns a single element that matches the given predicate. If no predicate is given it returns the single element in the sequence.
      * @param predicate The predicate to be checked
@@ -334,6 +397,8 @@ declare module './iterable' {
      */
     skip(count: number): Iterable<T>;
 
+    skipEvery(n: number): Iterable<T>;
+
     /**
      * Skips the given amount of elements from the end of the sequence.
      * @param count The number of elements to be skipped
@@ -347,6 +412,8 @@ declare module './iterable' {
      * @returns A sequence without the skipped elements
      */
     skipWhile(predicate: BiPredicate<T, number>): Iterable<T>;
+
+    startsWith(otherIterable: Iterable<T>, equalityCheck?: EqualityCheck<T>): boolean;
 
     /**
      * Gets the sum of the elements of the sequence if the sequence contains a number.
@@ -368,6 +435,8 @@ declare module './iterable' {
      * @returns A sequence with the taken elements
      */
     take(count: number): Iterable<T>;
+
+    takeEvery(n: number): Iterable<T>;
 
     /**
      * Takes the given amount of the elements from the end of the sequence.
@@ -463,6 +532,46 @@ Iterable.prototype.asIterable = function <T>(this: Iterable<T>): Iterable<T> {
   return this;
 }
 
+Iterable.prototype.atLeast = function <T>(
+  this: Iterable<T>,
+  count: number,
+  predicate: Predicate<T> = element => true
+): boolean {
+  if (count < 0) {
+    throw new Error('The count must be a non-negative number.');
+  }
+
+  let matches = 0;
+  for (const element of this) {
+    if (predicate(element)) {
+      matches++;
+    }
+    if (matches >= count) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+Iterable.prototype.atMost = function <T>(
+  this: Iterable<T>,
+  count: number,
+  predicate: Predicate<T> = element => true
+): boolean {
+  let matches = 0;
+  for (const element of this) {
+    if (predicate(element)) {
+      matches++;
+    }
+    if (matches > count) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 Iterable.prototype.average = function <T>(this: Iterable<T>): number {
   let sum = 0;
   let count = 0;
@@ -478,6 +587,14 @@ Iterable.prototype.average = function <T>(this: Iterable<T>): number {
 
 Iterable.prototype.averageOf = function <T>(this: Iterable<T>, selector: Selector<T, number>): number {
   return this.select(selector).average();
+}
+
+Iterable.prototype.batch = function <T>(this: Iterable<T>, batchSize: number): Iterable<Iterable<T>> {
+  if (batchSize < 1) {
+    throw new Error('The batch size must be a positive number.');
+  }
+
+  return new BatchIterable(this, batchSize);
 }
 
 Iterable.prototype.count = function <T>(
@@ -523,6 +640,10 @@ Iterable.prototype.elementAt = function <T>(this: Iterable<T>, index: number): T
   throw new Error('Index out of range.');
 }
 
+Iterable.prototype.exactly = function <T>(this: Iterable<T>, count: number, predicate: Predicate<T> = () => true): boolean {
+  return this.count(predicate) === count;
+}
+
 Iterable.prototype.first = function <T>(this: Iterable<T>, predicate?: Predicate<T>): T {
   const firstOrNull = this.firstOrNull(predicate);
   if (firstOrNull !== null) {
@@ -559,6 +680,14 @@ Iterable.prototype.innerJoin = function <T, O, R>(
   selector: BiSelector<T, O, R>
 ) {
   return new InnerJoinIterable(this, otherIterable, condition, selector);
+}
+
+Iterable.prototype.insert = function <T>(this: Iterable<T>, index: number, element: T): Iterable<T> {
+  return this.insertMany(index, [element]);
+}
+
+Iterable.prototype.insertMany = function <T>(this: Iterable<T>, index: number, elements: Iterable<T>): Iterable<T> {
+  return new InsertIterable(this, index, elements);
 }
 
 Iterable.prototype.intersect = function <T>(
@@ -809,10 +938,22 @@ Object.assign(Array.prototype, Iterable.prototype);
 Object.assign(Set.prototype, Iterable.prototype);
 Object.assign(Map.prototype, Iterable.prototype);
 
-export function range(from: number, count: number): Iterable<number> {
-  return new RangeIterable(from, count);
-}
-
 export function empty<T>(): Iterable<T> {
   return new EmptyIterable();
+}
+
+export function from<T>(...elements: T[]): Iterable<T> {
+  return elements;
+}
+
+export function generate<T>(count: number, generator: Selector<number, T>): Iterable<T> {
+  return range(0, count).select(generator);
+}
+
+export function random(count: number, minimum: number, maximum: number): Iterable<number> {
+  return range(0, count).select(() => Math.random() * maximum + minimum);
+}
+
+export function range(from: number, count: number): Iterable<number> {
+  return new RangeIterable(from, count);
 }

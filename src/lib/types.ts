@@ -1,3 +1,4 @@
+export type Action<T> = (element: T) => void;
 export type Predicate<T> = (element: T) => boolean;
 export type BiPredicate<T, O> = (left: T, right: O) => boolean;
 export type Selector<T, R> = (element: T) => R;
