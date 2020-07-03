@@ -233,7 +233,7 @@ declare module './iterable' {
       condition: BiPredicate<T, O>,
       selector: BiSelector<T, O | null, R>
     ): Iterable<R>;
-    
+
     /**
      * Returns the maximum of the elements in the sequence.
      * @param comparator A function that compares two elements and decides their relation (<, =, >)
@@ -699,7 +699,7 @@ Iterable.prototype.intersect = function <T>(
     otherIterable,
     equalityCheck,
     (left, right) => left
-  );
+  ).distinct(equalityCheck);
 }
 
 Iterable.prototype.last = function <T>(this: Iterable<T>, predicate?: Predicate<T>): T {
@@ -736,7 +736,7 @@ Iterable.prototype.max = function <T>(this: Iterable<T>, comparator: Comparator<
       max = element;
     }
   }
-  
+
   if (max === null) {
     throw new Error('The sequence contains no elements.');
   }
