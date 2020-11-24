@@ -98,6 +98,12 @@ declare module './iterable' {
     averageOf(selector: Selector<T, number>): number;
 
     /**
+     * Returns a sequence that contains the elements of the current sequence in reverse.
+     * @returns A sequence containing the elements of this sequence in reverse
+     */
+    backwards(): Iterable<T>;
+
+    /**
      * Splits the sequence into batches of the given size, and returns the batches in a sequence.
      * @param batchSize The maximal size of one batch
      * @returns A sequence containing the batches
@@ -134,6 +140,11 @@ declare module './iterable' {
      */
     elementAt(index: number): T;
 
+    /**
+     * Checks if the iterable sequence contains an other sequence at its end
+     * @param otherIterable The contained sequence
+     * @param equalityCheck A function that checks whether or not two elements of the sequence are equal
+     */
     endsWith(otherIterable: Iterable<T>, equalityCheck?: EqualityCheck<T>): boolean;
 
     /**
@@ -257,8 +268,6 @@ declare module './iterable' {
      */
     maxOf<P>(selector: Selector<T, P>, comparator?: Comparator<P>): P;
 
-    merge(otherIterable: Iterable<T>, comparator?: Comparator<T>): Iterable<T>;
-
     /**
      * Returns the minimum of the elements in the sequence.
      * @param comparator A function that compares two elements and decides their relation (<, =, >)
@@ -311,8 +320,6 @@ declare module './iterable' {
       selector: BiSelector<T | null, O | null, R>
     ): Iterable<R>;
 
-    pipe(action: Action<T>): Iterable<T>;
-
     /**
      * Creates a sequence that starts by the given element and contains the elements of the current sequence.
      * @param element The element to be added to the front
@@ -326,16 +333,6 @@ declare module './iterable' {
      * @returns A sequence containing the elements of the other sequence and the current sequence
      */
     prependMany(iterable: Iterable<T>): Iterable<T>;
-
-    position(element: T, equalityCheck?: EqualityCheck<T>): number;
-
-    repeat(repeatCount: number): Iterable<T>;
-
-    /**
-     * Returns a sequence that contains the elements of the current sequence in reverse.
-     * @returns A sequence containing the elements of this sequence in reverse
-     */
-    reverse(): Iterable<T>;
 
     /**
      * Performs a right join operation with the given join condition. If an element in the other sequence can not be joined to any elements of the current sequence, it is joined with null.
@@ -397,8 +394,6 @@ declare module './iterable' {
      */
     skip(count: number): Iterable<T>;
 
-    skipEvery(n: number): Iterable<T>;
-
     /**
      * Skips the given amount of elements from the end of the sequence.
      * @param count The number of elements to be skipped
@@ -412,8 +407,6 @@ declare module './iterable' {
      * @returns A sequence without the skipped elements
      */
     skipWhile(predicate: BiPredicate<T, number>): Iterable<T>;
-
-    startsWith(otherIterable: Iterable<T>, equalityCheck?: EqualityCheck<T>): boolean;
 
     /**
      * Gets the sum of the elements of the sequence if the sequence contains a number.
@@ -435,8 +428,6 @@ declare module './iterable' {
      * @returns A sequence with the taken elements
      */
     take(count: number): Iterable<T>;
-
-    takeEvery(n: number): Iterable<T>;
 
     /**
      * Takes the given amount of the elements from the end of the sequence.
@@ -589,6 +580,10 @@ Iterable.prototype.averageOf = function <T>(this: Iterable<T>, selector: Selecto
   return this.select(selector).average();
 }
 
+Iterable.prototype.backwards = function <T>(this: Iterable<T>): Iterable<T> {
+  return new ReverseIterable(this);
+}
+
 Iterable.prototype.batch = function <T>(this: Iterable<T>, batchSize: number): Iterable<Iterable<T>> {
   if (batchSize < 1) {
     throw new Error('The batch size must be a positive number.');
@@ -638,6 +633,31 @@ Iterable.prototype.elementAt = function <T>(this: Iterable<T>, index: number): T
     i++;
   }
   throw new Error('Index out of range.');
+}
+
+Iterable.prototype.endsWith = function <T>(
+  this: Iterable<T>,
+  otherIterable: Iterable<T>,
+  equalityCheck: EqualityCheck<T> = defaultEqualityCheck
+): boolean {
+  const iterators: IterableIterator<T>[] = [];
+  for (const element of this) {
+    for (let i = iterators.length - 1; i >= 0; i--) {
+      const result = iterators[i].next();
+      if (result.done || !equalityCheck(result.value, element)) {
+        iterators.splice(i, 1);
+      }
+    }
+
+    const newIterator = otherIterable[Symbol.iterator]();
+    const result = newIterator.next();
+
+    if (result.value === element) {
+      iterators.push(newIterator);
+    }
+  }
+
+  return iterators.any(x => !!x.next().done);
 }
 
 Iterable.prototype.exactly = function <T>(this: Iterable<T>, count: number, predicate: Predicate<T> = () => true): boolean {
@@ -787,10 +807,6 @@ Iterable.prototype.prepend = function <T>(this: Iterable<T>, element: T): Iterab
 
 Iterable.prototype.prependMany = function <T>(this: Iterable<T>, otherIterable: Iterable<T>): Iterable<T> {
   return otherIterable.appendMany(this);
-}
-
-Iterable.prototype.reverse = function <T>(this: Iterable<T>): Iterable<T> {
-  return new ReverseIterable(this);
 }
 
 Iterable.prototype.rightJoin = function <T, O, R>(
